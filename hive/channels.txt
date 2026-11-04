@@ -1,5 +1,5 @@
 # One YouTube handle per line. Lines starting with # are ignored.
-@actuallyranit
+@actuallyranitai
 @TrialByAIShow
 @PromptlyCurious
 @GrokLabDaily
