@@ -1,0 +1,42 @@
+name: hive
+
+on:
+  schedule:
+    - cron: "17 5 * * *"   # every day at 05:17 UTC
+  workflow_dispatch:        # adds a "Run workflow" button for manual runs
+
+permissions:
+  contents: write           # lets the job commit the CSVs
+
+concurrency:
+  group: hive
+  cancel-in-progress: false
+
+jobs:
+  stats:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch public YouTube stats
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: python hive/fetch_stats.py
+
+      - name: Commit CSVs
+        if: always()
+        run: |
+          git config user.name "hive-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/*.csv 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "No changes."
+          else
+            git commit -m "hive: stats $(date -u +%Y-%m-%d)"
+            git push
+          fi
